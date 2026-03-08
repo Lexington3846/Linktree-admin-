@@ -1,0 +1,1337 @@
+
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin | Flyboy Sirius</title>
+    
+    <!-- Three.js for 3D Background -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --dark-blue: #0a1628;
+            --navy: #1e3a8a;
+            --royal-blue: #3b82f6;
+            --white: #ffffff;
+            --glass: rgba(255, 255, 255, 0.25);
+            --glass-strong: rgba(255, 255, 255, 0.4);
+            --glass-border: rgba(255, 255, 255, 0.3);
+            --danger: #ef4444;
+            --success: #10b981;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--dark-blue);
+            color: var(--white);
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        /* 3D Canvas Background */
+        #canvas-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* Main Content Container */
+        .main-container {
+            position: relative;
+            z-index: 10;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* Back to Main Page Link */
+        .back-link {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1000;
+            background: var(--glass-strong);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            color: var(--white);
+            padding: 12px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+            font-size: 14px;
+            text-decoration: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .back-link:hover {
+            background: var(--royal-blue);
+            transform: translateX(-3px);
+        }
+
+        /* GitHub Config Section */
+        .github-config {
+            width: 100%;
+            background: rgba(245, 158, 11, 0.2);
+            backdrop-filter: blur(20px);
+            border: 2px solid rgba(245, 158, 11, 0.5);
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 20px;
+            animation: fadeInUp 1s ease 0.1s both;
+        }
+
+        .config-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #f59e0b;
+        }
+
+        .config-input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--glass-border);
+            background: rgba(0,0,0,0.3);
+            color: var(--white);
+            border-radius: 10px;
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+            font-family: monospace;
+        }
+
+        .config-input:focus {
+            outline: none;
+            border-color: #f59e0b;
+        }
+
+        .btn-config {
+            background: #f59e0b;
+            color: var(--dark-blue);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-config:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(245, 158, 11, 0.4);
+        }
+
+        .sync-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+
+        .sync-status.synced {
+            background: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+        }
+
+        .sync-status.pending {
+            background: rgba(245, 158, 11, 0.2);
+            color: #f59e0b;
+        }
+
+        .sync-status.error {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+        }
+
+        /* Admin Header */
+        .admin-header-main {
+            text-align: center;
+            margin-bottom: 30px;
+            animation: fadeInDown 1s ease;
+        }
+
+        .admin-title {
+            font-size: 2rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--white), var(--royal-blue));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+        }
+
+        .admin-subtitle {
+            opacity: 0.7;
+            font-size: 0.9rem;
+        }
+
+        /* Preview Section */
+        .preview-section {
+            width: 100%;
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            border: 2px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 30px;
+            animation: fadeInUp 1s ease 0.2s both;
+        }
+
+        .preview-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .profile-preview {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .preview-image {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid var(--royal-blue);
+        }
+
+        .preview-info h3 {
+            font-size: 1.3rem;
+            margin-bottom: 5px;
+        }
+
+        .preview-info p {
+            opacity: 0.7;
+            font-size: 0.9rem;
+        }
+
+        /* Form Sections */
+        .form-section {
+            width: 100%;
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            border: 2px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 20px;
+            animation: fadeInUp 1s ease 0.3s both;
+        }
+
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0.9;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .form-group input[type="text"] {
+            width: 100%;
+            padding: 15px;
+            border: 1px solid var(--glass-border);
+            background: rgba(0,0,0,0.2);
+            color: var(--white);
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+
+        .form-group input[type="text"]:focus {
+            outline: none;
+            border-color: var(--royal-blue);
+            background: rgba(0,0,0,0.3);
+        }
+
+        /* File Upload Styling */
+        .file-upload-container {
+            position: relative;
+            width: 100%;
+        }
+
+        .file-upload-input {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+            z-index: 2;
+        }
+
+        .file-upload-label {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            padding: 20px;
+            background: rgba(0,0,0,0.2);
+            border: 2px dashed var(--glass-border);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.95rem;
+        }
+
+        .file-upload-label:hover {
+            background: rgba(59, 130, 246, 0.2);
+            border-color: var(--royal-blue);
+        }
+
+        /* Platform List */
+        .platform-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .platform-item {
+            background: rgba(0,0,0,0.2);
+            padding: 18px;
+            border-radius: 12px;
+            border: 1px solid var(--glass-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s;
+        }
+
+        .platform-item:hover {
+            background: rgba(0,0,0,0.3);
+            border-color: var(--royal-blue);
+        }
+
+        .platform-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .platform-info i {
+            font-size: 1.4rem;
+        }
+
+        .platform-name {
+            font-weight: 600;
+        }
+
+        .platform-url {
+            font-size: 0.8rem;
+            opacity: 0.6;
+            margin-top: 3px;
+        }
+
+        .platform-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            -webkit-tap-highlight-color: transparent;
+            font-size: 1rem;
+        }
+
+        .btn-edit {
+            background: var(--royal-blue);
+            color: white;
+        }
+
+        .btn-delete {
+            background: #ef4444;
+            color: white;
+        }
+
+        .btn-icon:hover {
+            transform: scale(1.1);
+        }
+
+        /* Add Button */
+        .add-btn {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, var(--royal-blue), var(--navy));
+            border: none;
+            color: white;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all 0.3s;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .add-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(59, 130, 246, 0.4);
+        }
+
+        /* Save Button */
+        .save-btn {
+            width: 100%;
+            padding: 20px;
+            background: linear-gradient(135deg, #10b981, #059669);
+            border: none;
+            color: white;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all 0.3s;
+            -webkit-tap-highlight-color: transparent;
+            margin-top: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .save-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(16, 185, 129, 0.4);
+        }
+
+        .save-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        .save-btn.saving {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+        }
+
+        .spinner {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        .save-btn.saving .spinner {
+            display: inline-block;
+        }
+
+        .save-btn.saving .btn-text {
+            display: none;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.7);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+            z-index: 998;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-overlay.show {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .modal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.9);
+            background: rgba(10, 22, 40, 0.98);
+            backdrop-filter: blur(20px);
+            padding: 30px;
+            border-radius: 20px;
+            border: 2px solid var(--glass-border);
+            z-index: 1001;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.3s;
+            width: 90%;
+            max-width: 450px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal.show {
+            opacity: 1;
+            pointer-events: all;
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        .modal-header {
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin-bottom: 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            color: var(--white);
+            font-size: 1.5rem;
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+            transition: all 0.2s;
+        }
+
+        .close-modal:hover {
+            background: rgba(255,255,255,0.1);
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: var(--white);
+            color: var(--dark-blue);
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-weight: 600;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            z-index: 1002;
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+
+        .toast.error {
+            background: #ef4444;
+            color: white;
+        }
+
+        .toast.success {
+            background: #10b981;
+            color: white;
+        }
+
+        /* Animations */
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .back-link {
+                padding: 10px 15px;
+                font-size: 12px;
+            }
+            
+            .admin-title {
+                font-size: 1.6rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 3D Background Canvas -->
+    <div id="canvas-container"></div>
+
+    <!-- Back to Main Page -->
+    <a href="index.html" class="back-link" onclick="triggerHaptic(this)">
+        <i class="fas fa-arrow-left"></i>
+        <span>View Public Page</span>
+    </a>
+
+    <!-- Main Container -->
+    <div class="main-container">
+        
+        <!-- Admin Header -->
+        <div class="admin-header-main">
+            <h1 class="admin-title">🎛️ Admin Panel</h1>
+            <p class="admin-subtitle">Manage your links and profile</p>
+        </div>
+
+        <!-- GitHub Configuration -->
+        <div class="github-config" id="githubConfig">
+            <div class="config-title">
+                <i class="fab fa-github"></i>
+                GitHub Configuration
+            </div>
+            <div id="configForm">
+                <input type="text" class="config-input" id="githubToken" placeholder="GitHub Personal Access Token (classic)">
+                <input type="text" class="config-input" id="githubRepo" placeholder="Repository (e.g., username/flyboy-sirius)">
+                <input type="text" class="config-input" id="githubBranch" placeholder="Branch (default: main)" value="main">
+                <button class="btn-config" onclick="saveGitHubConfig()">
+                    <i class="fas fa-save"></i> Save Config
+                </button>
+            </div>
+            <div id="configDisplay" style="display: none;">
+                <p style="margin-bottom: 10px; font-size: 0.9rem;">
+                    <i class="fas fa-check-circle" style="color: #10b981;"></i> 
+                    Connected to: <strong id="repoDisplay"></strong>
+                </p>
+                <button class="btn-config" onclick="editGitHubConfig()" style="background: transparent; border: 1px solid #f59e0b; color: #f59e0b;">
+                    <i class="fas fa-edit"></i> Edit
+                </button>
+            </div>
+            <div class="sync-status pending" id="syncStatus">
+                <i class="fas fa-clock"></i>
+                <span>Configure GitHub to enable sync</span>
+            </div>
+        </div>
+
+        <!-- Preview Section -->
+        <div class="preview-section">
+            <div class="preview-title">
+                <i class="fas fa-eye" style="color: var(--royal-blue);"></i>
+                Live Preview
+            </div>
+            <div class="profile-preview">
+                <img src="https://via.placeholder.com/150/1e3a8a/ffffff?text=FS" alt="Profile" class="preview-image" id="previewImage">
+                <div class="preview-info">
+                    <h3 id="previewName">Flyboy Sirius</h3>
+                    <p id="previewLinks">0 links active</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Profile Settings -->
+        <div class="form-section">
+            <div class="section-title">
+                <i class="fas fa-user" style="color: var(--royal-blue);"></i>
+                Profile Settings
+            </div>
+            
+            <div class="form-group">
+                <label>Artist Name</label>
+                <input type="text" id="adminName" placeholder="Enter your name" oninput="updatePreview()">
+            </div>
+            
+            <div class="form-group">
+                <label>Profile Photo</label>
+                <div class="file-upload-container">
+                    <input type="file" 
+                           id="photoUpload" 
+                           class="file-upload-input" 
+                           accept="image/*"
+                           onchange="handlePhotoUpload(event)">
+                    <div class="file-upload-label" onclick="triggerHaptic(this)">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <span id="uploadText">Tap to choose photo from gallery</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label>Or use Image URL</label>
+                <input type="text" id="adminImage" placeholder="https://example.com/image.jpg" oninput="updatePreview()">
+            </div>
+            
+            <div class="form-group">
+                <label>Reincarnators Community Link</label>
+                <input type="text" id="communityUrl" placeholder="https://discord.com/invite/..." oninput="updatePreview()">
+            </div>
+        </div>
+
+        <!-- Platform Links -->
+        <div class="form-section">
+            <div class="section-title">
+                <i class="fas fa-link" style="color: var(--royal-blue);"></i>
+                Platform Links
+            </div>
+            
+            <div class="platform-list" id="platformList">
+                <!-- Platforms populated by JS -->
+            </div>
+            
+            <button class="add-btn" onclick="triggerHaptic(this); openAddModal()">
+                <i class="fas fa-plus"></i>
+                Add New Platform
+            </button>
+        </div>
+
+        <!-- Save Button -->
+        <button class="save-btn" id="saveBtn" onclick="triggerHaptic(this); saveAllChanges()">
+            <span class="spinner"></span>
+            <span class="btn-text">
+                <i class="fas fa-cloud-upload-alt"></i>
+                Publish to Website
+            </span>
+        </button>
+
+    </div>
+
+    <!-- Modal -->
+    <div class="modal-overlay" id="modalOverlay" onclick="closeModal()"></div>
+    <div class="modal" id="platformModal">
+        <div class="modal-header">
+            <span id="modalTitle">Add Platform</span>
+            <button class="close-modal" onclick="triggerHaptic(this); closeModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <div class="form-group">
+            <label>Platform Name</label>
+            <input type="text" id="platformName" placeholder="e.g., Spotify">
+        </div>
+        
+        <div class="form-group">
+            <label>URL</label>
+            <input type="text" id="platformUrl" placeholder="https://...">
+        </div>
+        
+        <div class="form-group">
+            <label>Icon Class (Font Awesome)</label>
+            <input type="text" id="platformIcon" placeholder="fab fa-spotify">
+        </div>
+        
+        <div class="form-group">
+            <label>Subtitle</label>
+            <input type="text" id="platformSubtitle" placeholder="e.g., Stream my latest track">
+        </div>
+        
+        <div class="form-group">
+            <label>Color</label>
+            <input type="color" id="platformColor" value="#3b82f6" style="width: 100%; height: 50px; border-radius: 10px; border: none; cursor: pointer;">
+        </div>
+
+        <button class="save-btn" onclick="triggerHaptic(this); savePlatform()">
+            Save Platform
+        </button>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // Data
+        let profileData = {
+            name: "Flyboy Sirius",
+            image: "https://via.placeholder.com/150/1e3a8a/ffffff?text=FS",
+            communityUrl: ""
+        };
+
+        let platforms = [
+            { id: 1, name: "Spotify", url: "", icon: "fab fa-spotify", subtitle: "Add your Spotify link", color: "#1DB954" },
+            { id: 2, name: "Apple Music", url: "", icon: "fab fa-apple", subtitle: "Add your Apple Music link", color: "#FA243C" },
+            { id: 3, name: "YouTube", url: "", icon: "fab fa-youtube", subtitle: "Add your YouTube link", color: "#FF0000" },
+            { id: 4, name: "Instagram", url: "", icon: "fab fa-instagram", subtitle: "Add your Instagram link", color: "#E4405F" },
+            { id: 5, name: "Twitter", url: "", icon: "fab fa-twitter", subtitle: "Add your Twitter link", color: "#1DA1F2" },
+            { id: 6, name: "TikTok", url: "", icon: "fab fa-tiktok", subtitle: "Add your TikTok link", color: "#000000" },
+            { id: 7, name: "SoundCloud", url: "", icon: "fab fa-soundcloud", subtitle: "Add your SoundCloud link", color: "#FF5500" },
+            { id: 8, name: "Reincarnators", url: "", icon: "fas fa-fire", subtitle: "Add your community link", color: "#f59e0b" }
+        ];
+
+        let editingId = null;
+        let uploadedImageData = null;
+        let audioContext = null;
+        let githubConfig = null;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            initThreeJS();
+            loadGitHubConfig();
+            loadData();
+            initAudioContext();
+            setupHapticFeedback();
+        });
+
+        // GitHub Configuration
+        function loadGitHubConfig() {
+            const saved = localStorage.getItem('flyboy_githubConfig');
+            if (saved) {
+                githubConfig = JSON.parse(saved);
+                showGitHubConfig();
+            }
+        }
+
+        function saveGitHubConfig() {
+            const token = document.getElementById('githubToken').value.trim();
+            const repo = document.getElementById('githubRepo').value.trim();
+            const branch = document.getElementById('githubBranch').value.trim() || 'main';
+            
+            if (!token || !repo) {
+                showToast('Please enter both token and repository', 'error');
+                return;
+            }
+            
+            githubConfig = { token, repo, branch };
+            localStorage.setItem('flyboy_githubConfig', JSON.stringify(githubConfig));
+            showGitHubConfig();
+            showToast('GitHub configuration saved!');
+            updateSyncStatus('synced', 'Ready to publish');
+        }
+
+        function showGitHubConfig() {
+            document.getElementById('configForm').style.display = 'none';
+            document.getElementById('configDisplay').style.display = 'block';
+            document.getElementById('repoDisplay').textContent = githubConfig.repo;
+        }
+
+        function editGitHubConfig() {
+            document.getElementById('configForm').style.display = 'block';
+            document.getElementById('configDisplay').style.display = 'none';
+            document.getElementById('githubToken').value = githubConfig.token;
+            document.getElementById('githubRepo').value = githubConfig.repo;
+            document.getElementById('githubBranch').value = githubConfig.branch;
+            updateSyncStatus('pending', 'Configuration incomplete');
+        }
+
+        function updateSyncStatus(status, message) {
+            const el = document.getElementById('syncStatus');
+            el.className = `sync-status ${status}`;
+            el.innerHTML = `<i class="fas fa-${status === 'synced' ? 'check-circle' : status === 'error' ? 'exclamation-circle' : 'clock'}"></i><span>${message}</span>`;
+        }
+
+        // Initialize Audio Context
+        function initAudioContext() {
+            document.addEventListener('click', function init() {
+                if (!audioContext) {
+                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                document.removeEventListener('click', init);
+            }, { once: true });
+        }
+
+        // Haptic Touch Feedback with QUIET Sound
+        function triggerHaptic(element) {
+            if (navigator.vibrate) {
+                navigator.vibrate(15);
+            }
+            
+            playTouchSound();
+            
+            if (element) {
+                element.style.transform = 'scale(0.95)';
+                setTimeout(() => {
+                    element.style.transform = '';
+                }, 100);
+            }
+        }
+
+        // Play touch sound - REDUCED VOLUME
+        function playTouchSound() {
+            try {
+                if (!audioContext) {
+                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                
+                if (audioContext.state === 'suspended') {
+                    audioContext.resume();
+                }
+                
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                oscillator.frequency.value = 1200;
+                oscillator.type = 'sine';
+                
+                gainNode.gain.setValueAtTime(0.02, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.03);
+                
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.03);
+            } catch (e) {
+                console.log('Audio feedback not available');
+            }
+        }
+
+        // Setup haptic feedback
+        function setupHapticFeedback() {
+            const allButtons = document.querySelectorAll('button, .back-link, .file-upload-label, .btn-icon, .close-modal, .platform-item');
+            
+            allButtons.forEach(btn => {
+                btn.addEventListener('touchstart', function(e) {
+                    if (navigator.vibrate) navigator.vibrate(15);
+                    playTouchSound();
+                    this.style.transform = 'scale(0.95)';
+                }, {passive: true});
+                
+                btn.addEventListener('touchend', function(e) {
+                    this.style.transform = '';
+                }, {passive: true});
+                
+                btn.addEventListener('touchcancel', function(e) {
+                    this.style.transform = '';
+                }, {passive: true});
+                
+                btn.addEventListener('mousedown', function(e) {
+                    playTouchSound();
+                    this.style.transform = 'scale(0.95)';
+                });
+                
+                btn.addEventListener('mouseup', function(e) {
+                    this.style.transform = '';
+                });
+                
+                btn.addEventListener('mouseleave', function(e) {
+                    this.style.transform = '';
+                });
+            });
+        }
+
+        // Three.js Background
+        function initThreeJS() {
+            const container = document.getElementById('canvas-container');
+            const scene = new THREE.Scene();
+            
+            const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.z = 30;
+
+            const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            container.appendChild(renderer.domElement);
+
+            const particlesGeometry = new THREE.BufferGeometry();
+            const particlesCount = 1500;
+            const posArray = new Float32Array(particlesCount * 3);
+            const scaleArray = new Float32Array(particlesCount);
+
+            for(let i = 0; i < particlesCount * 3; i += 3) {
+                const t = (i / 3) / particlesCount;
+                const angle = t * Math.PI * 4;
+                const radius = 10 + Math.sin(angle * 3) * 5;
+                
+                posArray[i] = Math.cos(angle) * radius + (Math.random() - 0.5) * 2;
+                posArray[i+1] = Math.sin(angle) * radius * 0.6 + (Math.random() - 0.5) * 2;
+                posArray[i+2] = (Math.random() - 0.5) * 10;
+                
+                scaleArray[i/3] = Math.random();
+            }
+
+            particlesGeometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+            particlesGeometry.setAttribute('scale', new THREE.BufferAttribute(scaleArray, 1));
+
+            const particlesMaterial = new THREE.PointsMaterial({
+                size: 0.2,
+                color: 0x3b82f6,
+                transparent: true,
+                opacity: 0.6,
+                blending: THREE.AdditiveBlending
+            });
+
+            const particlesMesh = new THREE.Points(particlesGeometry, particlesMaterial);
+            scene.add(particlesMesh);
+
+            const ambientLight = new THREE.AmbientLight(0x404040, 2);
+            scene.add(ambientLight);
+
+            const blueLight = new THREE.PointLight(0x3b82f6, 2, 50);
+            blueLight.position.set(10, 10, 10);
+            scene.add(blueLight);
+
+            const whiteLight = new THREE.PointLight(0xffffff, 1, 50);
+            whiteLight.position.set(-10, -10, 10);
+            scene.add(whiteLight);
+
+            let mouseX = 0;
+            let mouseY = 0;
+
+            document.addEventListener('mousemove', (event) => {
+                mouseX = (event.clientX / window.innerWidth) * 2 - 1;
+                mouseY = -(event.clientY / window.innerHeight) * 2 + 1;
+            });
+
+            const clock = new THREE.Clock();
+
+            function animate() {
+                requestAnimationFrame(animate);
+                
+                const elapsedTime = clock.getElapsedTime();
+
+                particlesMesh.rotation.y = elapsedTime * 0.05;
+                particlesMesh.rotation.z = elapsedTime * 0.02;
+
+                particlesMesh.rotation.x += 0.05 * (mouseY * 0.5 - particlesMesh.rotation.x);
+                particlesMesh.rotation.y += 0.05 * (mouseX * 0.5 - particlesMesh.rotation.y);
+
+                const scale = 1 + Math.sin(elapsedTime * 2) * 0.05;
+                particlesMesh.scale.set(scale, scale, scale);
+
+                renderer.render(scene, camera);
+            }
+
+            animate();
+
+            window.addEventListener('resize', () => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            });
+        }
+
+        // Load data
+        function loadData() {
+            // Try to load from localStorage first (for offline editing)
+            const savedProfile = localStorage.getItem('flyboy_profileData');
+            const savedPlatforms = localStorage.getItem('flyboy_platforms');
+            
+            if (savedProfile) {
+                profileData = JSON.parse(savedProfile);
+            }
+            
+            if (savedPlatforms) {
+                platforms = JSON.parse(savedPlatforms);
+            }
+
+            document.getElementById('adminName').value = profileData.name;
+            document.getElementById('adminImage').value = profileData.image;
+            document.getElementById('communityUrl').value = profileData.communityUrl;
+            
+            updatePreview();
+            renderPlatformList();
+        }
+
+        // Update preview
+        function updatePreview() {
+            const name = document.getElementById('adminName').value || profileData.name;
+            const image = uploadedImageData || document.getElementById('adminImage').value || profileData.image;
+            
+            document.getElementById('previewName').textContent = name;
+            document.getElementById('previewImage').src = image;
+            
+            const activeLinks = platforms.filter(p => p.url && p.url.trim() !== '').length;
+            document.getElementById('previewLinks').textContent = activeLinks + ' link' + (activeLinks !== 1 ? 's' : '') + ' active';
+        }
+
+        // Handle Photo Upload
+        function handlePhotoUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            if (!file.type.startsWith('image/')) {
+                showToast('Please select an image file', 'error');
+                return;
+            }
+            
+            if (file.size > 5 * 1024 * 1024) {
+                showToast('Image too large. Max 5MB', 'error');
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                uploadedImageData = e.target.result;
+                document.getElementById('adminImage').value = uploadedImageData;
+                document.getElementById('uploadText').textContent = 'Photo selected: ' + file.name;
+                updatePreview();
+                showToast('Photo uploaded successfully!', 'success');
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // Render platform list
+        function renderPlatformList() {
+            const list = document.getElementById('platformList');
+            list.innerHTML = platforms.map(platform => `
+                <div class="platform-item" onclick="triggerHaptic(this)">
+                    <div class="platform-info">
+                        <i class="${platform.icon}" style="color: ${platform.color}"></i>
+                        <div>
+                            <div class="platform-name">${platform.name}</div>
+                            <div class="platform-url">${platform.url || 'No link added'}</div>
+                        </div>
+                    </div>
+                    <div class="platform-actions">
+                        <button class="btn-icon btn-edit" onclick="event.stopPropagation(); triggerHaptic(this); editPlatform(${platform.id})">
+                            <i class="fas fa-pen"></i>
+                        </button>
+                        <button class="btn-icon btn-delete" onclick="event.stopPropagation(); triggerHaptic(this); deletePlatform(${platform.id})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+            
+            updatePreview();
+        }
+
+        // Modal functions
+        function openAddModal() {
+            editingId = null;
+            document.getElementById('modalTitle').textContent = 'Add Platform';
+            document.getElementById('platformName').value = '';
+            document.getElementById('platformUrl').value = '';
+            document.getElementById('platformIcon').value = '';
+            document.getElementById('platformSubtitle').value = '';
+            document.getElementById('platformColor').value = '#3b82f6';
+            
+            document.getElementById('modalOverlay').classList.add('show');
+            document.getElementById('platformModal').classList.add('show');
+        }
+
+        function editPlatform(id) {
+            const platform = platforms.find(p => p.id === id);
+            if (!platform) return;
+
+            editingId = id;
+            document.getElementById('modalTitle').textContent = 'Edit Platform';
+            document.getElementById('platformName').value = platform.name;
+            document.getElementById('platformUrl').value = platform.url;
+            document.getElementById('platformIcon').value = platform.icon;
+            document.getElementById('platformSubtitle').value = platform.subtitle;
+            document.getElementById('platformColor').value = platform.color;
+
+            document.getElementById('modalOverlay').classList.add('show');
+            document.getElementById('platformModal').classList.add('show');
+        }
+
+        function closeModal() {
+            document.getElementById('modalOverlay').classList.remove('show');
+            document.getElementById('platformModal').classList.remove('show');
+        }
+
+        function savePlatform() {
+            const name = document.getElementById('platformName').value.trim();
+            const url = document.getElementById('platformUrl').value.trim();
+            const icon = document.getElementById('platformIcon').value.trim() || 'fas fa-link';
+            const subtitle = document.getElementById('platformSubtitle').value.trim();
+            const color = document.getElementById('platformColor').value;
+
+            if (!name) {
+                showToast("Please enter platform name", 'error');
+                return;
+            }
+
+            if (editingId) {
+                const index = platforms.findIndex(p => p.id === editingId);
+                if (index !== -1) {
+                    platforms[index] = { ...platforms[index], name, url, icon, subtitle, color };
+                }
+            } else {
+                const newId = Math.max(...platforms.map(p => p.id), 0) + 1;
+                platforms.push({ id: newId, name, url, icon, subtitle, color });
+            }
+
+            renderPlatformList();
+            closeModal();
+            showToast(editingId ? "Platform updated!" : "Platform added!", 'success');
+        }
+
+        function deletePlatform(id) {
+            if (confirm("Are you sure you want to delete this platform?")) {
+                platforms = platforms.filter(p => p.id !== id);
+                renderPlatformList();
+                showToast("Platform deleted", 'success');
+            }
+        }
+
+        // Save all changes and publish to GitHub
+        async function saveAllChanges() {
+            if (!githubConfig) {
+                showToast('Please configure GitHub first', 'error');
+                document.getElementById('githubConfig').scrollIntoView({ behavior: 'smooth' });
+                return;
+            }
+
+            const btn = document.getElementById('saveBtn');
+            btn.classList.add('saving');
+            btn.disabled = true;
+            updateSyncStatus('pending', 'Publishing...');
+
+            // Update data
+            profileData.name = document.getElementById('adminName').value || profileData.name;
+            profileData.image = uploadedImageData || document.getElementById('adminImage').value || profileData.image;
+            profileData.communityUrl = document.getElementById('communityUrl').value;
+
+            // Save to localStorage as backup
+            localStorage.setItem('flyboy_profileData', JSON.stringify(profileData));
+            localStorage.setItem('flyboy_platforms', JSON.stringify(platforms));
+
+            try {
+                // Create data.json content
+                const dataContent = {
+                    profile: profileData,
+                    platforms: platforms,
+                    lastUpdated: new Date().toISOString()
+                };
+
+                // Update data.json via GitHub API
+                await updateGitHubFile('data.json', JSON.stringify(dataContent, null, 2), 'Update site data');
+
+                // If there's a new image upload, we need to handle it separately
+                if (uploadedImageData && uploadedImageData.startsWith('data:image')) {
+                    // Extract base64 data and upload as file
+                    const base64Data = uploadedImageData.split(',')[1];
+                    const extension = uploadedImageData.split(';')[0].split('/')[1];
+                    const filename = `profile-${Date.now()}.${extension}`;
+                    
+                    await updateGitHubFile(`images/${filename}`, base64Data, 'Upload profile image', true);
+                    
+                    // Update profile image URL to point to GitHub raw content
+                    profileData.image = `https://raw.githubusercontent.com/${githubConfig.repo}/${githubConfig.branch}/images/${filename}`;
+                    
+                    // Update data.json again with new image URL
+                    dataContent.profile.image = profileData.image;
+                    await updateGitHubFile('data.json', JSON.stringify(dataContent, null, 2), 'Update profile image URL');
+                    
+                    uploadedImageData = null;
+                }
+
+                updateSyncStatus('synced', 'Published successfully!');
+                showToast('Changes published! Fans will see updates in ~1 minute.', 'success');
+            } catch (error) {
+                console.error('Error publishing:', error);
+                updateSyncStatus('error', 'Failed to publish');
+                showToast('Failed to publish: ' + error.message, 'error');
+            } finally {
+                btn.classList.remove('saving');
+                btn.disabled = false;
+            }
+        }
+
+        // GitHub API Helper
+        async function updateGitHubFile(path, content, message, isBase64 = false) {
+            const { token, repo, branch } = githubConfig;
+            const apiUrl = `https://api.github.com/repos/${repo}/contents/${path}`;
+            
+            // Check if file exists
+            let sha = null;
+            try {
+                const response = await fetch(apiUrl + `?ref=${branch}`, {
+                    headers: {
+                        'Authorization': `token ${token}`,
+                        'Accept': 'application/vnd.github.v3+json'
+                    }
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    sha = data.sha;
+                }
+            } catch (e) {
+                // File doesn't exist, will create new
+            }
+
+            const body = {
+                message: message,
+                content: isBase64 ? content : btoa(unescape(encodeURIComponent(content))),
+                branch: branch
+            };
+
+            if (sha) {
+                body.sha = sha;
+            }
+
+            const response = await fetch(apiUrl, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `token ${token}`,
+                    'Accept': 'application/vnd.github.v3+json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(body)
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.message || 'GitHub API error');
+            }
+
+            return await response.json();
+        }
+
+        // Toast
+        function showToast(message, type = '') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = 'toast show ' + type;
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 5000);
+        }
+    </script>
+</body>
+</html>
